@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run server:dev",
+    "server:stopall": "npx forever stopall",
     "server:start": "npx forever index.js",
-    "server:dev": "npx watch \"npm run server:start\" ."
+    "server:restart": "npx run-s server:stopall server:start",
+    "server:dev": "npx watch \"npm run server:restart\" ."
   },
   "repository": {
     "type": "git",
@@ -26,7 +28,9 @@
     "node-fetch": "^2.3.0"
   },
   "devDependencies": {
+    "cheerio": "^1.0.0-rc.2",
     "forever": "^0.15.3",
+    "npm-run-all": "^4.1.5",
     "watch": "^1.0.2"
   }
 }

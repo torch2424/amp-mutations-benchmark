@@ -2,12 +2,23 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>WasmBoy Benchmarking</title>
+    <title>AMP Experiment Benchmarking</title>
     <link rel="icon" href="./assets/WasmBoyCartridgeLogo.png" sizes="16x16 32x32" type="image/png">
     <meta name="author" content="Aaron Turner">
 		<meta name="viewport" content="width=device-width,initial-scale=1">
   </head>
   <body>
-    <h1>Hello world!</h1>
+    <h1>Insert an AMP Page below</h1>
+    <form>
+      <input id="page-url" type="url" placeholder="https://torch2424.com"></input>
+      <button type="button" onclick="benchmarkPage()">Benchmark!</button>
+    </form>
+    <script>
+      window.benchmarkPage = () => {
+        const inputElement = document.querySelector('#page-url');
+
+        window.location.href = `/benchmark?page=${inputElement.value}`;
+      }
+    </script>
   </body>
 </html>
