@@ -1,0 +1,32 @@
+{
+  "name": "amp-benchmark",
+  "version": "0.0.1",
+  "description": "Tool for benchmarking operations on an amp page",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run server:dev",
+    "server:start": "npx forever index.js",
+    "server:dev": "npx watch \"npm run server:start\" ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/torch2424/amp-benchmark.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/torch2424/amp-benchmark/issues"
+  },
+  "homepage": "https://github.com/torch2424/amp-benchmark#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "multer": "^1.4.1",
+    "node-fetch": "^2.3.0"
+  },
+  "devDependencies": {
+    "forever": "^0.15.3",
+    "watch": "^1.0.2"
+  }
+}
