@@ -4,11 +4,14 @@
   "description": "Tool for benchmarking operations on an amp page",
   "main": "index.js",
   "scripts": {
-    "start": "npm run server:dev",
+    "start": "npm run dev",
+    "dev": "npx run-p server:dev benchmark:dev",
     "server:stopall": "npx forever stopall",
     "server:start": "npx forever index.js",
     "server:restart": "npx run-s server:stopall server:start",
-    "server:dev": "npx watch \"npm run server:restart\" ."
+    "server:dev": "npx watch \"npm run server:restart\" .",
+    "benchmark:build": "npx rollup -c",
+    "benchmark:dev": "npx rollup -c -w"
   },
   "husky": {
     "hooks": {
@@ -30,15 +33,29 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "multer": "^1.4.1",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.3.0",
+    "preact": "^8.4.2",
+    "rollup": "^1.1.2",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-copy-glob": "^0.3.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-serve": "^1.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-proposal-export-default-from": "^7.2.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
     "cheerio": "^1.0.0-rc.2",
     "forever": "^0.15.3",
     "husky": "^1.3.1",
     "npm-run-all": "^4.1.5",
     "prettier": "1.16.4",
     "pretty-quick": "^1.10.0",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-postcss": "^2.0.3",
     "watch": "^1.0.2"
   }
 }

@@ -1,0 +1,10 @@
+.amp-benchmark {
+  width: 100%;
+  height: 50px;
+  background-color: #fafafa;
+  transition: height 0.5s;
+}
+
+.amp-benchmark:hover {
+  height: 50vh;
+}

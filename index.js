@@ -7,6 +7,7 @@ const multer = require("multer");
 const upload = multer(); // for parsing multipart/form-data
 
 // Dependencies
+const fs = require("fs");
 const fetch = require("node-fetch");
 const { URLSearchParams } = require("url");
 
@@ -65,7 +66,10 @@ app.get("/benchmark", (req, res) => {
 
     // Inject our script into the bottom of the body
     const $ = cheerio.load(response);
-    $("body").append('<script>console.log("Benchmark Injected!")</script>');
+    const benchmarkIife = fs.readFileSync("./dist/index.iife.js");
+    $("body").append(`<script>
+      ${benchmarkIife}
+      </script>`);
 
     const injectedPage = $.html();
 
