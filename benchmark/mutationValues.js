@@ -2,6 +2,7 @@
 
 export const selectors = [
   "div",
+  "div",
   "div > *",
   "h1",
   "h2",
@@ -19,8 +20,17 @@ export const selectors = [
   "table",
   "table > td",
   "div > a",
-  "body > a"
+  "body > a",
+  "amp-img",
+  "amp-sidebar",
+  "amp-ad",
+  "amp-video",
+  "amp-carousel"
 ];
+
+export const getRandomSelector = () => {
+  return selectors[Math.floor(Math.random() * selectors.length)];
+};
 
 export const getAttributeWithValue = () => {
   const response = {
@@ -54,7 +64,6 @@ export const attributeNamesToTypesObject = {
   style: "string",
   class: "string",
   id: "string",
-  hidden: "boolean",
   href: "link",
   draggable: "boolean",
   title: "string",

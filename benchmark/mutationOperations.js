@@ -1,5 +1,5 @@
 export function setAttribute(element, attributeName, value) {
-  element.setAttribute(name, value);
+  element.setAttribute(attributeName, value);
 }
 
 export function setTextContent(element, value) {
@@ -10,11 +10,12 @@ export function reorderElement(element, nextSibling) {
   nextSibling.parentNode.insertBefore(element, nextSibling);
 }
 
-export function createTemplate() {
-  const template = document.createElement("template");
+export function createTemplate(templateId) {
+  const template = document.createElement("div");
+
   // Preact component table
   // https://preactjs.com/guide/getting-started
-  template.innerHTML = `
+  let innerHTML = `
 <table>
 <thead>
 <tr>
@@ -55,9 +56,18 @@ export function createTemplate() {
 </table>
   `;
 
-  template.setAttribute("hidden", true);
+  const randomLength = Math.floor(Math.random() * 2) + 1;
+  for (let i = 0; i < randomLength; i++) {
+    innerHTML += innerHTML;
+  }
 
-  document.body.insertBefore(template, document.body.firstChild);
+  template.innerHTML = innerHTML;
+
+  template.setAttribute("type", "template");
+
+  if (templateId) {
+    template.setAttribute("id", templateId);
+  }
 
   return template;
 }
@@ -70,8 +80,8 @@ export function appendChild(element, template) {
   element.appendChild(template.firstChild);
 }
 
-export function insertBefore(element, template) {
-  element.parentNode.insertBefore(template.firstChild, element);
+export function insertBefore(element, template, nextSibling) {
+  element.insertBefore(template.firstChild, nextSibling);
 }
 
 export function removeElement(element) {
