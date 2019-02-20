@@ -168,9 +168,13 @@ export default class BenchmarkRunner {
   }
 
   runAllMutations() {
+    // TODO: time stramp here for klayouyt.
     this.mutationRecords.forEach(mutationRecord => {
       this.runMutation(mutationRecord);
     });
+    //raf, inside raf setimteout 0, then timestamp end.
+
+    // then promise resolve.
 
     this.mutationRecords = [];
 
