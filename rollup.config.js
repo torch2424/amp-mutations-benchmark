@@ -37,6 +37,17 @@ const exports = [
     },
     plugins
   }
+  /*
+  Use to update the purifier
+  {
+    input: "../amphtml/src/purifier.js",
+    output: {
+      file: "benchmark/purifier.js",
+      format: "esm"
+    },
+    plugins
+  }
+  */
 ];
 
 export default exports;

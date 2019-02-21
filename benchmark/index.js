@@ -9,39 +9,59 @@ console.log("AmpBenchmarkIife!");
 
 // Run our benchamrks
 const benchmarkRunner = new BenchmarkRunner();
-benchmarkRunner.generateMutations(1000);
+benchmarkRunner.generateMutations(200);
 benchmarkRunner.runAllMutations();
+benchmarkRunner.generateMutations(200);
+benchmarkRunner.runAllMutations(true);
 
-const getTableHeadings = () => {
+const getTableHeadings = resultCategoryKey => {
   const tableHeadings = [];
 
-  Object.keys(benchmarkRunner.mutationResults).forEach(key => {
-    tableHeadings.push(<th>{key}</th>);
-  });
+  if (
+    !benchmarkRunner.mutationResults ||
+    !benchmarkRunner.mutationResults[resultCategoryKey]
+  ) {
+    return tableHeadings;
+  }
+
+  Object.keys(benchmarkRunner.mutationResults[resultCategoryKey]).forEach(
+    key => {
+      tableHeadings.push(<th>{key}</th>);
+    }
+  );
 
   return tableHeadings;
 };
 
-const getResultsTableRow = (name, statsCallback, stopConvertToMilliSeconds) => {
+const getResultsTableRow = (
+  name,
+  resultCategoryKey,
+  statsCallback,
+  stopConvertToMilliSeconds
+) => {
   const statsTableCells = [];
 
-  Object.keys(benchmarkRunner.mutationResults).forEach(key => {
-    const times = [];
+  Object.keys(benchmarkRunner.mutationResults[resultCategoryKey]).forEach(
+    key => {
+      const times = [];
 
-    benchmarkRunner.mutationResults[key].forEach(result => {
-      times.push(result.time);
-    });
+      benchmarkRunner.mutationResults[resultCategoryKey][key].forEach(
+        result => {
+          times.push(result.time);
+        }
+      );
 
-    let result = statsCallback(times);
+      let result = statsCallback(times);
 
-    // Ooooo this some top quality code right here
-    if (!stopConvertToMilliSeconds) {
-      result = result / 1000;
+      // Ooooo this some top quality code right here
+      if (!stopConvertToMilliSeconds) {
+        result = result / 1000;
+      }
+
+      // Divide by 1000 to get milliseconds
+      statsTableCells.push(<td>{result}</td>);
     }
-
-    // Divide by 1000 to get milliseconds
-    statsTableCells.push(<td>{result}</td>);
-  });
+  );
 
   const tableRow = (
     <tr>
@@ -53,24 +73,38 @@ const getResultsTableRow = (name, statsCallback, stopConvertToMilliSeconds) => {
   return tableRow;
 };
 
-const getResultTableRows = () => {
+const getResultTableRows = resultCategoryKey => {
   const tableRows = [];
+
+  if (
+    !benchmarkRunner.mutationResults ||
+    !benchmarkRunner.mutationResults[resultCategoryKey]
+  ) {
+    return tableRows;
+  }
 
   tableRows.push(
     getResultsTableRow(
       "Total Ran",
+      resultCategoryKey,
       array => {
         return array.length;
       },
       true
     )
   );
-  tableRows.push(getResultsTableRow("Sum", stats.sum));
-  tableRows.push(getResultsTableRow("Mean (Average)", stats.mean));
-  tableRows.push(getResultsTableRow("Median", stats.mean));
-  tableRows.push(getResultsTableRow("Mode", stats.mode));
-  tableRows.push(getResultsTableRow("Variance", stats.variance));
-  tableRows.push(getResultsTableRow("Standard Deviation", stats.stdev));
+  tableRows.push(getResultsTableRow("Sum", resultCategoryKey, stats.sum));
+  tableRows.push(
+    getResultsTableRow("Mean (Average)", resultCategoryKey, stats.mean)
+  );
+  tableRows.push(getResultsTableRow("Median", resultCategoryKey, stats.mean));
+  tableRows.push(getResultsTableRow("Mode", resultCategoryKey, stats.mode));
+  tableRows.push(
+    getResultsTableRow("Variance", resultCategoryKey, stats.variance)
+  );
+  tableRows.push(
+    getResultsTableRow("Standard Deviation", resultCategoryKey, stats.stdev)
+  );
 
   return tableRows;
 };
@@ -91,14 +125,28 @@ class App extends Component {
         </div>
         <div>Total Mutations run: {benchmarkRunner.getTotalMutationsRun()}</div>
 
+        <h3>Not Purified</h3>
+
         <table class="value-table">
           <thead>
             <tr>
               <th>Statistic</th>
-              {getTableHeadings()}
+              {getTableHeadings("notSanitized")}
             </tr>
           </thead>
-          <tbody>{getResultTableRows()}</tbody>
+          <tbody>{getResultTableRows("notSanitized")}</tbody>
+        </table>
+
+        <h3>Purified</h3>
+
+        <table class="value-table">
+          <thead>
+            <tr>
+              <th>Statistic</th>
+              {getTableHeadings("sanitized")}
+            </tr>
+          </thead>
+          <tbody>{getResultTableRows("sanitized")}</tbody>
         </table>
       </div>
     );

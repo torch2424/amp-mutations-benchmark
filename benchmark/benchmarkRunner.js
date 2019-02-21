@@ -7,6 +7,9 @@ import {
   getStringType
 } from "./mutationValues";
 
+// Import dom purify from AMP
+import { purifyHtml } from "./purifier";
+
 console.log("Microsecond package check:");
 const isMicrosecondTestStart = microseconds.now();
 const isMicrosecondTestEnd = microseconds.now();
@@ -124,7 +127,6 @@ export default class BenchmarkRunner {
 
   generateMutations(numberOfMutations) {
     this.mutationRecords = [];
-    this.mutationResults = {};
 
     if (!numberOfMutations) {
       numberOfMutations = 20;
@@ -134,7 +136,7 @@ export default class BenchmarkRunner {
     }
   }
 
-  runMutation(mutationRecord) {
+  runMutation(mutationRecord, shouldPurify) {
     if (this.mutationRecords.length === 0) {
       console.log("No more mutations!");
       return;
@@ -147,14 +149,36 @@ export default class BenchmarkRunner {
     try {
       const start = microseconds.now();
       mutationRecord.mutate();
+      if (shouldPurify) {
+        let dirtyTarget = mutationRecord.target;
+        if (dirtyTarget.parentElement) {
+          dirtyTarget = dirtyTarget.parentElement;
+        }
+        const purifiedInnerHTML = purifyHtml(dirtyTarget.innerHTML);
+        // Let's simlate the innerHTML by just creating a new element and inserting there
+        const purifiedElement = document.createElement("div");
+        purifiedElement.innerHTML = purifiedInnerHTML;
+      }
       const time = microseconds.since(start);
 
       const mutationRecordName = mutationRecord.constructor.name;
 
-      if (!this.mutationResults[mutationRecordName]) {
-        this.mutationResults[mutationRecordName] = [];
+      let mutationResultCategory;
+      if (shouldPurify) {
+        mutationResultCategory = "sanitized";
+      } else {
+        mutationResultCategory = "notSanitized";
       }
-      this.mutationResults[mutationRecordName].push({
+
+      if (!this.mutationResults[mutationResultCategory]) {
+        this.mutationResults[mutationResultCategory] = {};
+      }
+
+      if (!this.mutationResults[mutationResultCategory][mutationRecordName]) {
+        this.mutationResults[mutationResultCategory][mutationRecordName] = [];
+      }
+
+      this.mutationResults[mutationResultCategory][mutationRecordName].push({
         mutationRecord,
         time
       });
@@ -167,10 +191,10 @@ export default class BenchmarkRunner {
     }
   }
 
-  runAllMutations() {
+  runAllMutations(shouldPurify) {
     // TODO: time stramp here for klayouyt.
     this.mutationRecords.forEach(mutationRecord => {
-      this.runMutation(mutationRecord);
+      this.runMutation(mutationRecord, shouldPurify);
     });
     //raf, inside raf setimteout 0, then timestamp end.
 
@@ -184,8 +208,10 @@ export default class BenchmarkRunner {
   getTotalMutationsRun() {
     let totalMutationsRun = 0;
 
-    Object.keys(this.mutationResults).forEach(key => {
-      totalMutationsRun += this.mutationResults[key].length;
+    Object.keys(this.mutationResults).forEach(categoryKey => {
+      Object.keys(this.mutationResults[categoryKey]).forEach(key => {
+        totalMutationsRun += this.mutationResults[categoryKey][key].length;
+      });
     });
 
     return totalMutationsRun;
