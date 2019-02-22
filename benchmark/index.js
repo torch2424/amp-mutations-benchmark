@@ -1,18 +1,13 @@
 import { h, render, Component } from "preact";
 import stats from "stats-lite";
+import microseconds from "microseconds";
 
 import BenchmarkRunner from "./benchmarkRunner";
 
 import "./index.css";
 
-console.log("AmpBenchmarkIife!");
-
-// Run our benchamrks
 const benchmarkRunner = new BenchmarkRunner();
-benchmarkRunner.generateMutations(200);
-benchmarkRunner.runAllMutations();
-benchmarkRunner.generateMutations(200);
-benchmarkRunner.runAllMutations(true);
+const numberOfMutationsPerPass = 200;
 
 const getTableHeadings = resultCategoryKey => {
   const tableHeadings = [];
@@ -109,6 +104,22 @@ const getResultTableRows = resultCategoryKey => {
   return tableRows;
 };
 
+// Function to wait for layout
+// Thank you sepand!
+const waitForLayout = () => {
+  let start = microseconds.now();
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const time = microseconds.since(start);
+        resolve(time);
+      }, 0);
+    });
+  });
+};
+
+const timesToLayout = [];
+
 // Render the results
 class App extends Component {
   render() {
@@ -124,6 +135,8 @@ class App extends Component {
           <i>Results recorded in microseconds, and converted to milliseconds</i>
         </div>
         <div>Total Mutations run: {benchmarkRunner.getTotalMutationsRun()}</div>
+        <div>Times to layout: {timesToLayout}</div>
+        <div>Mutations Per Pass: {numberOfMutationsPerPass}</div>
 
         <h3>Not Purified</h3>
 
@@ -153,8 +166,32 @@ class App extends Component {
   }
 }
 
-// Find the first child of the body
-const benchmarkContainer = document.createElement("div");
-document.body.insertBefore(benchmarkContainer, document.body.firstChild);
+const runBenchmarkTask = async () => {
+  const numberOfMutationsPerPass = 200;
 
-render(<App />, benchmarkContainer);
+  // Run our benchamrks
+  benchmarkRunner.generateMutations(numberOfMutationsPerPass);
+  benchmarkRunner.runAllMutations();
+
+  // Wait for layout
+  let layoutTime = await waitForLayout();
+  layoutTime = layoutTime / 1000;
+  timesToLayout.push(`${layoutTime}, `);
+
+  benchmarkRunner.generateMutations(numberOfMutationsPerPass);
+  benchmarkRunner.runAllMutations(true);
+
+  // Wait for layout
+  layoutTime = await waitForLayout();
+  layoutTime = layoutTime / 1000;
+  timesToLayout.push(`${layoutTime}`);
+
+  // Find the first child of the body
+  const benchmarkContainer = document.createElement("div");
+  benchmarkContainer.id = "benchmark-container";
+
+  await waitForLayout();
+  document.body.insertBefore(benchmarkContainer, document.body.firstChild);
+  render(<App />, benchmarkContainer);
+};
+runBenchmarkTask();

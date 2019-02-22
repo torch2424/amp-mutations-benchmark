@@ -9,6 +9,7 @@ import {
 
 // Import dom purify from AMP
 import { purifyHtml } from "./purifier";
+import DOMPurify from "dompurify";
 
 console.log("Microsecond package check:");
 const isMicrosecondTestStart = microseconds.now();
@@ -17,7 +18,7 @@ const isMillisecondTestStart = Date.now();
 const isMillisecondTestEnd = Date.now();
 const isMicrosecondTestResult = isMicrosecondTestEnd - isMicrosecondTestStart;
 const isMillisecondTestResult = isMillisecondTestEnd - isMillisecondTestStart;
-const isMicrosecondMin = 10;
+const isMicrosecondMin = 5;
 if (isMicrosecondTestResult >= isMicrosecondMin) {
   console.log(
     `Yes! It is microseconds! Difference in time is greater than or equal to ${isMicrosecondMin}`
@@ -154,10 +155,19 @@ export default class BenchmarkRunner {
         if (dirtyTarget.parentElement) {
           dirtyTarget = dirtyTarget.parentElement;
         }
-        const purifiedInnerHTML = purifyHtml(dirtyTarget.innerHTML);
+
+        // AMP DOMPurify
+        const purifiedBodyNode = purifyHtml(dirtyTarget.innerHTML);
+
         // Let's simlate the innerHTML by just creating a new element and inserting there
         const purifiedElement = document.createElement("div");
-        purifiedElement.innerHTML = purifiedInnerHTML;
+        purifiedElement.innerHTML = purifiedBodyNode.innerHTML;
+
+        /* DOMPurify
+        const clean = DOMPurify.sanitize(dirtyTarget.innerHTML);
+        const purifiedElement = document.createElement("div");
+        purifiedElement.innerHTML = clean;
+        */
       }
       const time = microseconds.since(start);
 
