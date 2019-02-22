@@ -1,6 +1,7 @@
 import { h, render, Component } from "preact";
 import stats from "stats-lite";
 import microseconds from "microseconds";
+import browserDetect from "browser-detect";
 
 import BenchmarkRunner from "./benchmarkRunner";
 
@@ -193,5 +194,100 @@ const runBenchmarkTask = async () => {
   await waitForLayout();
   document.body.insertBefore(benchmarkContainer, document.body.firstChild);
   render(<App />, benchmarkContainer);
+
+  // Ping our server with all the info of this run.
+  let benchmarkResultInfo = {
+    comment: "// All times in Milliseconds",
+    browser: {
+      ...browserDetect(),
+      userAgent: window.navigator.userAgent
+    },
+    layoutTime: {
+      milliseconds: {
+        sanitized: timesToLayout[1],
+        notSanitized: timesToLayout[0]
+      }
+    },
+    mutationResults: {
+      totalRan: benchmarkRunner.getTotalMutationsRun(),
+      mutationsPerPass: numberOfMutationsPerPass
+    }
+  };
+
+  // Add our stats to the resultInfo
+  const addResultsToResultInfo = resultCategoryKey => {
+    benchmarkResultInfo.mutationResults[resultCategoryKey] = {};
+
+    Object.keys(benchmarkRunner.mutationResults[resultCategoryKey]).forEach(
+      key => {
+        const times = [];
+
+        benchmarkRunner.mutationResults[resultCategoryKey][key].forEach(
+          result => {
+            times.push(result.time / 1000);
+          }
+        );
+
+        benchmarkResultInfo.mutationResults[resultCategoryKey][key] = {};
+
+        benchmarkResultInfo.mutationResults[resultCategoryKey][
+          key
+        ].times = times;
+
+        const statsCallbacks = [
+          "sum",
+          "mean",
+          "median",
+          "mode",
+          "variance",
+          "stdev"
+        ];
+        statsCallbacks.forEach(callbackKey => {
+          // Add all of our stats
+          benchmarkResultInfo.mutationResults[resultCategoryKey][key][
+            callbackKey
+          ] = stats[callbackKey](times);
+        });
+
+        // Add the min / max
+        benchmarkResultInfo.mutationResults[resultCategoryKey][
+          key
+        ].max = Math.max.apply(Math, times);
+        benchmarkResultInfo.mutationResults[resultCategoryKey][
+          key
+        ].min = Math.min.apply(Math, times);
+      }
+    );
+  };
+
+  // Add our results
+  addResultsToResultInfo("notSanitized");
+  addResultsToResultInfo("sanitized");
+
+  // Get the page we ran this on
+  const urlParams = new URLSearchParams(window.location.search);
+  const url = new URL(urlParams.get("page"));
+  benchmarkResultInfo.url = {
+    host: url.host,
+    hostname: url.hostname,
+    origin: url.origin,
+    href: url.href,
+    pathname: url.pathname,
+    protocol: url.protocol
+  };
+
+  console.log("Sending Result Info to server:", benchmarkResultInfo);
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#Uploading_JSON_data
+  await fetch("/benchmark/results", {
+    method: "POST",
+    body: JSON.stringify(benchmarkResultInfo),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+    .then(res => res.json())
+    .then(response => console.log("POST Success:", JSON.stringify(response)))
+    .catch(error => console.error("POST Error:", error));
 };
 runBenchmarkTask();

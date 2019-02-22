@@ -30,6 +30,7 @@
   "homepage": "https://github.com/torch2424/amp-benchmark#readme",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "browser-detect": "^0.2.28",
     "cors": "^2.8.5",
     "dompurify": "^1.0.10",
     "express": "^4.16.4",

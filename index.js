@@ -52,30 +52,42 @@ app.use(
 );
 
 // Serve amp page with the benchmarking script injected
-app.get("/benchmark", (req, res) => {
-  const asyncTask = async () => {
-    // Get the url for the query parameter
-    const pageUrl = req.query.page;
+app.get("/benchmark", async (req, res) => {
+  // Get the url for the query parameter
+  const pageUrl = req.query.page;
 
-    if (!pageUrl) {
-      res.status(400).send("No Page in query!");
-      return;
-    }
+  if (!pageUrl) {
+    res.status(400).send("No Page in query!");
+    return;
+  }
 
-    const response = await fetch(pageUrl).then(res => res.text());
+  const response = await fetch(pageUrl).then(res => res.text());
 
-    // Inject our script into the bottom of the body
-    const $ = cheerio.load(response);
-    const benchmarkIife = fs.readFileSync("./dist/index.iife.js");
-    $("body").append(`<script>
-      ${benchmarkIife}
-      </script>`);
+  // Inject our script into the bottom of the body
+  const $ = cheerio.load(response);
+  const benchmarkIife = fs.readFileSync("./dist/index.iife.js");
+  $("body").append(`<script>
+    ${benchmarkIife}
+    </script>`);
 
-    const injectedPage = $.html();
+  const injectedPage = $.html();
 
-    res.status(200).send(injectedPage);
-  };
-  asyncTask();
+  res.status(200).send(injectedPage);
+});
+
+// Save the results to a JSON file
+app.post("/benchmark/results", async (req, res) => {
+  // Write the body to a json file
+  fs.writeFileSync(
+    `./results/${req.body.url.host}--${req.body.browser.os}--${
+      req.body.browser.name
+    }--${req.body.browser.version}.json`,
+    JSON.stringify(req.body, null, 2)
+  );
+
+  res.status(200).json({
+    message: "Saved JSON to file!"
+  });
 });
 
 const port = 8000;
